@@ -118,13 +118,28 @@ app_license = "MIT"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-#	"*": {
-#		"on_update": "method",
-#		"on_cancel": "method",
-#		"on_trash": "method"
-#	}
-# }
+doc_events = {
+	"Notification": {
+		"on_trash": "whatsapp_erpnext.whatsapp_erpnext.doc_events.notification.on_trash",
+        "validate": "whatsapp_erpnext.whatsapp_erpnext.doc_events.notification.validate",
+        "after_insert": "whatsapp_erpnext.whatsapp_erpnext.doc_events.notification.after_insert"
+	},
+    "*": {
+        "before_insert": "whatsapp_erpnext.utils.run_server_script_for_doc_event",
+        "after_insert": "whatsapp_erpnext.utils.run_server_script_for_doc_event",
+        "before_validate": "whatsapp_erpnext.utils.run_server_script_for_doc_event",
+        "validate": "whatsapp_erpnext.utils.run_server_script_for_doc_event",
+        "on_update": "whatsapp_erpnext.utils.run_server_script_for_doc_event",
+        "before_submit": "whatsapp_erpnext.utils.run_server_script_for_doc_event",
+        "on_submit": "whatsapp_erpnext.utils.run_server_script_for_doc_event",
+        "before_cancel": "whatsapp_erpnext.utils.run_server_script_for_doc_event",
+        "on_cancel": "whatsapp_erpnext.utils.run_server_script_for_doc_event",
+        "on_trash": "whatsapp_erpnext.utils.run_server_script_for_doc_event",
+        "after_delete": "whatsapp_erpnext.utils.run_server_script_for_doc_event",
+        "before_update_after_submit": "whatsapp_erpnext.utils.run_server_script_for_doc_event",
+        "on_update_after_submit": "whatsapp_erpnext.utils.run_server_script_for_doc_event"
+    }
+}
 
 # Scheduled Tasks
 # ---------------
