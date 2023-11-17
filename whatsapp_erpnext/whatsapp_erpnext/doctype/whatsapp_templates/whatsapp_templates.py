@@ -10,94 +10,96 @@ from frappe.desk.form.utils import get_pdf_link
 
 class WhatsAppTemplates(Document):
 	def after_insert(self):
-		self.template_name = self.template_name.lower().replace(' ', '_')
-		self.language_code = frappe.db.get_value(
-			"Language", self.language
-		).replace('-', '_')
+		if not self.already_updated:
+			self.template_name = self.template_name.lower().replace(' ', '_')
+			self.language_code = frappe.db.get_value(
+				"Language", self.language
+			).replace('-', '_')
 
-		self.get_settings()
-		data = {
-			"name": self.template_name,
-			"language": self.language_code,
-			"category": self.category,
-			"components": []
-		}
+			self.get_settings()
+			data = {
+				"name": self.template_name,
+				"language": self.language_code,
+				"category": self.category,
+				"components": []
+			}
 
-		body = {
-			"type": "BODY",
-			"text": self.template,
-		}
-		if self.sample_values:
-			body.update({
-				"example": {
-					"body_text": [self.sample_values.split(',')]
-				}
-			})
+			body = {
+				"type": "BODY",
+				"text": self.template,
+			}
+			if self.sample_values:
+				body.update({
+					"example": {
+						"body_text": [self.sample_values.split(',')]
+					}
+				})
 
-		data['components'].append(body)
-		if self.header_type:
-			data['components'].append(self.get_header())
+			data['components'].append(body)
+			if self.header_type:
+				data['components'].append(self.get_header())
 
-		# add footer
-		if self.footer:
-			data['components'].append({
-				"type": "FOOTER",
-				"text": self.footer
-			})
+			# add footer
+			if self.footer:
+				data['components'].append({
+					"type": "FOOTER",
+					"text": self.footer
+				})
 
-		try:
-			response = make_post_request(
-				f"{self._url}/{self._version}/{self._business_id}/message_templates",
-				headers=self._headers, data=json.dumps(data)
-			)
-			self.id = response['id']
-			self.status = response['status']
-			# frappe.db.set_value("WhatsApp Templates", self.name, "id", response['id'])
-		except Exception as e:
-			res = frappe.flags.integration_request.json()['error']
-			error_message = res.get('error_user_msg', res.get("message"))
-			frappe.throw(
-				msg=error_message,
-				title=res.get("error_user_title", "Error"),
-			)
+			try:
+				response = make_post_request(
+					f"{self._url}/{self._version}/{self._business_id}/message_templates",
+					headers=self._headers, data=json.dumps(data)
+				)
+				self.id = response['id']
+				self.status = response['status']
+				# frappe.db.set_value("WhatsApp Templates", self.name, "id", response['id'])
+			except Exception as e:
+				res = frappe.flags.integration_request.json()['error']
+				error_message = res.get('error_user_msg', res.get("message"))
+				frappe.throw(
+					msg=error_message,
+					title=res.get("error_user_title", "Error"),
+				)
 
 	def on_update(self):
 		"""Update template to meta."""
-		self.get_settings()
-		data = {
-			"components": []
-		}
+		if self.already_updated:
+			self.get_settings()
+			data = {
+				"components": []
+			}
 
-		body = {
-			"type": "BODY",
-			"text": self.template,
-		}
-		if self.sample_values:
-			body.update({
-				"example": {
-					"body_text": [self.sample_values.split(',')]
-				}
-			})
-		data['components'].append(body)
-		if self.header_type:
-			data['components'].append(self.get_header())
-		if self.footer:
-			data['components'].append({
-				"type": "FOOTER",
-				"text": self.footer
-			})
-		try:
-			# post template to meta for update
-			response = make_post_request(
-				f"{self._url}/{self._version}/{self.id}",
-				headers=self._headers, data=json.dumps(data)
-			)
-		except Exception as e:
-			res = frappe.flags.integration_request.json()['error']
-			frappe.throw(
-				msg=res.get('error_user_msg', res.get("message")),
-				title=res.get("error_user_title", "Error"),
-			)
+			body = {
+				"type": "BODY",
+				"text": self.template,
+			}
+			if self.sample_values:
+				body.update({
+					"example": {
+						"body_text": [self.sample_values.split(',')]
+					}
+				})
+			data['components'].append(body)
+			if self.header_type:
+				data['components'].append(self.get_header())
+			if self.footer:
+				data['components'].append({
+					"type": "FOOTER",
+					"text": self.footer
+				})
+			try:
+				# post template to meta for update
+				response = make_post_request(
+					f"{self._url}/{self._version}/{self.id}",
+					headers=self._headers, data=json.dumps(data)
+				)
+			except Exception as e:
+				res = frappe.flags.integration_request.json()['error']
+				frappe.throw(
+					msg=res.get('error_user_msg', res.get("message")),
+					title=res.get("error_user_title", "Error"),
+				)
 
 
 	def get_settings(self):
@@ -114,19 +116,20 @@ class WhatsAppTemplates(Document):
 		}
 
 	def on_trash(self):
-		self.get_settings()
-		url = f'{self._url}/{self._version}/{self._business_id}/message_templates?name={self.name}'
-		try:
-			make_request("DELETE", url, headers=self._headers)
-		except Exception:
-			res = frappe.flags.integration_request.json()['error']
-			if res.get("error_user_title") == "Message Template Not Found":
-				frappe.msgprint("Deleted locally", res.get("error_user_title", "Error"), alert=True)
-			else:
-				frappe.throw(
-					msg=res.get("error_user_msg"),
-					title=res.get("error_user_title", "Error"),
-				)
+		if self.already_updated:
+			self.get_settings()
+			url = f'{self._url}/{self._version}/{self._business_id}/message_templates?name={self.name}'
+			try:
+				make_request("DELETE", url, headers=self._headers)
+			except Exception:
+				res = frappe.flags.integration_request.json()['error']
+				if res.get("error_user_title") == "Message Template Not Found":
+					frappe.msgprint("Deleted locally", res.get("error_user_title", "Error"), alert=True)
+				else:
+					frappe.throw(
+						msg=res.get("error_user_msg"),
+						title=res.get("error_user_title", "Error"),
+					)
 
 	def get_header(self):
 		"""Get header format."""

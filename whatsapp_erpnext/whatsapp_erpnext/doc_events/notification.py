@@ -92,59 +92,61 @@ def send_template_message(self, doc: Document):
 
 
 	if template:
-		contact_no = doc.get(self.receiver_mobile_field)
-		data = {
-			"messaging_product": "whatsapp",
-			"to": contact_no,
-			"type": "template",
-			"template": {
-				"name": self.custom_whatsapp_template,
-				"language": {
-					"code": template.language_code
-				},
-				"components": []
-			}
-		}
-
-		# Pass parameter values
-		if self.fields:
-			parameters = []
-			for field in self.fields:
-				parameters.append({
-					"type": "text",
-					"text": doc_data[field.field_name]
-				})
-
-			data['template']["components"] = [{
-				"type": "body",
-				"parameters": parameters
-			}]
-
-		if self.attach_print:
-			key = doc.get_document_share_key()
-			frappe.db.commit()
-
-			link = get_pdf_link(
-				doc_data['doctype'],
-				doc_data['name'],
-				print_format=self.print_format or "Standard"
-			)
-
-			filename = f'{doc_data["name"]}.pdf'
-			url = f'{frappe.utils.get_url()}{link}&key={key}'
-
-			data['template']['components'].append({
-				"type": "header",
-				"parameters": [{
-					"type": "document",
-					"document": {
-						"link": url,
-						"filename": filename
+		for row in self.recipients:
+			if row.receiver_by_document_field != "owner":
+				contact_no = doc.get(row.receiver_by_document_field)
+				data = {
+					"messaging_product": "whatsapp",
+					"to": contact_no,
+					"type": "template",
+					"template": {
+						"name": self.custom_whatsapp_template,
+						"language": {
+							"code": template.language_code
+						},
+						"components": []
 					}
-				}]
-			})
+				}
 
-		notify(self, data)
+				# Pass parameter values
+				if self.fields:
+					parameters = []
+					for field in self.fields:
+						parameters.append({
+							"type": "text",
+							"text": doc_data[field.field_name]
+						})
+
+					data['template']["components"] = [{
+						"type": "body",
+						"parameters": parameters
+					}]
+
+				if self.attach_print:
+					key = doc.get_document_share_key()
+					frappe.db.commit()
+
+					link = get_pdf_link(
+						doc_data['doctype'],
+						doc_data['name'],
+						print_format=self.print_format or "Standard"
+					)
+
+					filename = f'{doc_data["name"]}.pdf'
+					url = f'{frappe.utils.get_url()}{link}&key={key}'
+
+					data['template']['components'].append({
+						"type": "header",
+						"parameters": [{
+							"type": "document",
+							"document": {
+								"link": url,
+								"filename": filename
+							}
+						}]
+					})
+
+				notify(self, data)
 
 def notify(self, data):
 	"""Notify."""
@@ -195,3 +197,11 @@ def format_number(self, number):
 		number = number[1:len(number)]
 
 	return number
+
+@frappe.whitelist()
+def send_notification(notification, ref_doctype, ref_docname):
+	noti_doc = frappe.get_doc("Notification", notification)
+
+	ref_doc = frappe.get_doc(ref_doctype, ref_docname)
+	
+	send_template_message(noti_doc, ref_doc)

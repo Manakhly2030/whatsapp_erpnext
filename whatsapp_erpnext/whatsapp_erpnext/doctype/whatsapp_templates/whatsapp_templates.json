@@ -12,6 +12,7 @@
   "template",
   "sample_values",
   "column_break_6",
+  "already_updated",
   "category",
   "language",
   "language_code",
@@ -106,11 +107,17 @@
    "fieldname": "status",
    "fieldtype": "Data",
    "label": "Status"
+  },
+  {
+   "default": "0",
+   "fieldname": "already_updated",
+   "fieldtype": "Check",
+   "label": "Already Updated"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-11-16 07:09:36.448738",
+ "modified": "2023-11-17 00:24:27.549990",
  "modified_by": "Administrator",
  "module": "WhatsApp ERPNext",
  "name": "WhatsApp Templates",
