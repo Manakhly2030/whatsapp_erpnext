@@ -193,7 +193,7 @@ def notify(self, data):
 			"doctype": "Integration Request",
 			"integration_request_service": self.custom_whatsapp_template,
 			"output": str(frappe.flags.integration_request.json()),
-			"status": "Failed" if status_response else "Success"
+			"status": "Failed" if status_response else "Completed"
 		}).insert(ignore_permissions=True)
 
 def format_number(self, number):
