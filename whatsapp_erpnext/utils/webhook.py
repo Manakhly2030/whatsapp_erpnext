@@ -38,6 +38,7 @@ def get():
 def post():
 	"""Post."""
 	data = frappe.local.form_dict
+	frappe.log_error(data)
 	frappe.get_doc({
 		"doctype": "Integration Request",
 		"template": "Webhook",
@@ -138,7 +139,7 @@ def update_message_status(data):
 	name = frappe.db.get_value("WhatsApp Message", filters={"message_id": id})
 
 	doc = frappe.get_doc("WhatsApp Message", name)
-	doc.status = status
+	doc.status = status.title()
 	if conversation:
 		doc.conversation_id = conversation
 	doc.save(ignore_permissions=True)

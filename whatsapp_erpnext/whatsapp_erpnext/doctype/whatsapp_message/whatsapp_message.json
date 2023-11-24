@@ -26,12 +26,13 @@
    "allow_in_quick_entry": 1,
    "fieldname": "label",
    "fieldtype": "Data",
-   "in_list_view": 1,
    "label": "Label"
   },
   {
    "fieldname": "type",
    "fieldtype": "Select",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
    "label": "Type",
    "options": "Outgoing\nIncoming",
    "set_only_once": 1
@@ -66,6 +67,7 @@
   {
    "fieldname": "message_id",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Message ID",
    "read_only": 1
   },
@@ -80,6 +82,7 @@
   {
    "fieldname": "conversation_id",
    "fieldtype": "Data",
+   "hidden": 1,
    "label": "Conversation ID",
    "read_only": 1
   },
@@ -108,7 +111,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-11-24 02:30:47.377518",
+ "modified": "2023-11-24 03:47:25.103081",
  "modified_by": "Administrator",
  "module": "WhatsApp ERPNext",
  "name": "WhatsApp Message",
@@ -151,6 +154,14 @@
   {
    "color": "Red",
    "title": "Failed"
+  },
+  {
+   "color": "Blue",
+   "title": "Read"
+  },
+  {
+   "color": "Light Blue",
+   "title": "Delivered"
   }
  ],
  "track_seen": 1
