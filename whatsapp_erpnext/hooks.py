@@ -32,7 +32,11 @@ app_license = "MIT"
 doctype_js = {
     "Sales Invoice" : "public/js/sales_invoice.js",
     "Payment Entry" : "public/js/payment_entry.js",
-    "Notification" : "public/js/notificaton.js"
+    "Sales Order" : "public/js/sales_order.js",
+    "Quotation" : "public/js/quotation.js",
+    "Purchase Order" : "public/js/purchase_order.js",
+    "Delivery Note" : "public/js/delivery_note.js",
+    "Notification" : "public/js/notificaton.js",
     }
 # doctype_list_js = {"doctype" : "public/js/doctype_list.js"}
 # doctype_tree_js = {"doctype" : "public/js/doctype_tree.js"}
@@ -234,3 +238,14 @@ doc_events = {
 # auth_hooks = [
 #	"whatsapp_erpnext.auth.validate"
 # ]
+
+fixtures = [
+	{
+         "dt": "Custom Field", 
+         "filters":[["module", "=", 'WhatsApp ERPNext']]
+    },
+    {
+         "dt": "Property Setter", 
+         "filters":[["module", "=", 'WhatsApp ERPNext']]
+    }
+    ]

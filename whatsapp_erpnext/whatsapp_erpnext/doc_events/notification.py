@@ -72,7 +72,7 @@ def send_scheduled_message(self) -> dict:
 			self.notify(data)
 	# return _globals.frappe.flags
 
-def send_template_message(self, doc: Document):
+def send_template_message(self, doc: Document, contact_no = None):
 	"""Specific to Document Event triggered Server Scripts."""
 	if not self.enabled:
 		return
@@ -94,59 +94,61 @@ def send_template_message(self, doc: Document):
 	if template:
 		for row in self.recipients:
 			if row.receiver_by_document_field != "owner":
-				contact_no = doc.get(row.receiver_by_document_field)
-				data = {
-					"messaging_product": "whatsapp",
-					"to": contact_no,
-					"type": "template",
-					"template": {
-						"name": self.custom_whatsapp_template,
-						"language": {
-							"code": template.language_code
-						},
-						"components": []
+				if not contact_no:
+					contact_no = doc.get(row.receiver_by_document_field)
+				if contact_no:
+					data = {
+						"messaging_product": "whatsapp",
+						"to": contact_no,
+						"type": "template",
+						"template": {
+							"name": self.custom_whatsapp_template,
+							"language": {
+								"code": template.language_code
+							},
+							"components": []
+						}
 					}
-				}
 
-				# Pass parameter values
-				if self.fields:
-					parameters = []
-					for field in self.fields:
-						parameters.append({
-							"type": "text",
-							"text": doc_data[field.field_name]
+					# Pass parameter values
+					if self.fields:
+						parameters = []
+						for field in self.fields:
+							parameters.append({
+								"type": "text",
+								"text": doc_data[field.field_name]
+							})
+
+						data['template']["components"] = [{
+							"type": "body",
+							"parameters": parameters
+						}]
+
+					if self.attach_print:
+						key = doc.get_document_share_key()
+						frappe.db.commit()
+
+						link = get_pdf_link(
+							doc_data['doctype'],
+							doc_data['name'],
+							print_format=self.print_format or "Standard"
+						)
+
+						filename = f'{doc_data["name"]}.pdf'
+						url = f'{frappe.utils.get_url()}{link}&key={key}'
+
+						data['template']['components'].append({
+							"type": "header",
+							"parameters": [{
+								"type": "document",
+								"document": {
+									"link": url,
+									"filename": filename
+								}
+							}]
 						})
 
-					data['template']["components"] = [{
-						"type": "body",
-						"parameters": parameters
-					}]
-
-				if self.attach_print:
-					key = doc.get_document_share_key()
-					frappe.db.commit()
-
-					link = get_pdf_link(
-						doc_data['doctype'],
-						doc_data['name'],
-						print_format=self.print_format or "Standard"
-					)
-
-					filename = f'{doc_data["name"]}.pdf'
-					url = f'{frappe.utils.get_url()}{link}&key={key}'
-
-					data['template']['components'].append({
-						"type": "header",
-						"parameters": [{
-							"type": "document",
-							"document": {
-								"link": url,
-								"filename": filename
-							}
-						}]
-					})
-
-				notify(self, data)
+					notify(self, data)
 
 def notify(self, data):
 	"""Notify."""
@@ -186,10 +188,12 @@ def notify(self, data):
 			alert=True
 		)
 	finally:
+		status_response = frappe.flags.integration_request.json().get('error')
 		frappe.get_doc({
 			"doctype": "Integration Request",
 			"integration_request_service": self.custom_whatsapp_template,
-			"output": str(frappe.flags.integration_request.json())
+			"output": str(frappe.flags.integration_request.json()),
+			"status": "Failed" if status_response else "Success"
 		}).insert(ignore_permissions=True)
 
 def format_number(self, number):
@@ -199,9 +203,9 @@ def format_number(self, number):
 	return number
 
 @frappe.whitelist()
-def send_notification(notification, ref_doctype, ref_docname):
+def send_notification(notification, ref_doctype, ref_docname, mobile_no = None):
 	noti_doc = frappe.get_doc("Notification", notification)
 
 	ref_doc = frappe.get_doc(ref_doctype, ref_docname)
 	
-	send_template_message(noti_doc, ref_doc)
+	send_template_message(noti_doc, ref_doc, mobile_no)

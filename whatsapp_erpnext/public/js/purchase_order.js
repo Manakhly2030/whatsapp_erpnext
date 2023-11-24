@@ -1,4 +1,4 @@
-frappe.ui.form.on('Payment Entry', {
+frappe.ui.form.on('Purchase Order', {
     onload: function(frm){
         let fields = [
 			{

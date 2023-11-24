@@ -39,7 +39,7 @@ def post():
 	"""Post."""
 	data = frappe.local.form_dict
 	frappe.get_doc({
-		"doctype": "WhatsApp Notification Log",
+		"doctype": "Integration Request",
 		"template": "Webhook",
 		"meta_data": json.dumps(data)
 	}).insert(ignore_permissions=True)
