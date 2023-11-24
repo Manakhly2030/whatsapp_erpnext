@@ -60,7 +60,8 @@ def post():
 					"from": message['from'],
 					"message": message['text']['body'],
 					"message_id": message['id'],
-					"content_type":message_type
+					"content_type":message_type,
+					"stauts": "Received"
 				}).insert(ignore_permissions=True)
 			elif message_type in ["image", "audio", "video", "document"]:
 				media_id = message[message_type]["id"]
@@ -97,7 +98,8 @@ def post():
 							"message_id": message['id'],
 							"message": f"/files/{file_name}",
 							"attach" : f"/files/{file_name}",
-							"content_type" : message_type
+							"content_type" : message_type,
+							"stauts": "Received"
 						}).insert(ignore_permissions=True)
 	else:
 		changes = None

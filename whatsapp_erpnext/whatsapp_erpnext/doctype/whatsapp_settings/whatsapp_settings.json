@@ -55,7 +55,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2023-11-10 00:18:00.747457",
+ "modified": "2023-11-24 02:19:15.181558",
  "modified_by": "Administrator",
  "module": "WhatsApp ERPNext",
  "name": "WhatsApp Settings",
@@ -68,6 +68,16 @@
    "print": 1,
    "read": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "WhatsApp Manager",
    "share": 1,
    "write": 1
   }

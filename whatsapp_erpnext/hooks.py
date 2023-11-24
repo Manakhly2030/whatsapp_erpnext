@@ -247,5 +247,9 @@ fixtures = [
     {
          "dt": "Property Setter", 
          "filters":[["module", "=", 'WhatsApp ERPNext']]
+    },
+    {
+         "dt": "Role", 
+         "filters":[["name", "=", 'WhatsApp Manager']]
     }
     ]

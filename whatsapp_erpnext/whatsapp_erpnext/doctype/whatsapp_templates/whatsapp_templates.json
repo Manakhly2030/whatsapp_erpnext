@@ -117,7 +117,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-11-17 00:24:27.549990",
+ "modified": "2023-11-24 02:18:57.295574",
  "modified_by": "Administrator",
  "module": "WhatsApp ERPNext",
  "name": "WhatsApp Templates",
@@ -133,6 +133,18 @@
    "read": 1,
    "report": 1,
    "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "WhatsApp Manager",
    "share": 1,
    "write": 1
   }
