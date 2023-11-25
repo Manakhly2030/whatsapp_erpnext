@@ -4,6 +4,7 @@ from frappe.model.document import Document
 from frappe.utils.safe_exec import get_safe_globals, safe_exec
 from frappe.integrations.utils import make_post_request
 from frappe.desk.form.utils import get_pdf_link
+from frappe.utils.background_jobs import enqueue
 
 
 def validate(self, method):
@@ -168,16 +169,8 @@ def notify(self, data, label = None):
 			headers=headers, data=json.dumps(data)
 		)
 
-		frappe.get_doc({
-			"doctype": "WhatsApp Message",
-			"type": "Outgoing",
-			"message": str(data['template']),
-			"to": data['to'],
-			"message_type": "Template",
-			"message_id": response['messages'][0]['id'],
-			"content_type": "document",
-			"label": label
-		}).save(ignore_permissions=True)
+		message_id = response['messages'][0]['id']
+		enqueue(save_whatsapp_log, data = data, message_id = message_id, label = label)
 
 		frappe.msgprint("WhatsApp Message Triggered", indicator="green", alert=True)
 
@@ -211,3 +204,15 @@ def send_notification(notification, ref_doctype, ref_docname, mobile_no = None):
 	ref_doc = frappe.get_doc(ref_doctype, ref_docname)
 	
 	send_template_message(noti_doc, ref_doc, mobile_no)
+
+def save_whatsapp_log(data, response, label = None):
+	frappe.get_doc({
+			"doctype": "WhatsApp Message",
+			"type": "Outgoing",
+			"message": str(data['template']),
+			"to": data['to'],
+			"message_type": "Template",
+			"message_id": message_id,
+			"content_type": "document",
+			"label": label
+		}).save(ignore_permissions=True)
