@@ -38,7 +38,7 @@ def get():
 def post():
 	"""Post."""
 	data = frappe.local.form_dict
-	frappe.log_error(data)
+
 	frappe.get_doc({
 		"doctype": "Integration Request",
 		"template": "Webhook",
