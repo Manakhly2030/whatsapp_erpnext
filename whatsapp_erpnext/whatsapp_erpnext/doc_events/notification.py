@@ -116,7 +116,7 @@ def send_template_message(self, doc: Document, contact_no = None):
 						for field in self.fields:
 							parameters.append({
 								"type": "text",
-								"text": doc_data[field.field_name]
+								"text": doc.get_formatted(field.field_name)
 							})
 
 						data['template']["components"] = [{

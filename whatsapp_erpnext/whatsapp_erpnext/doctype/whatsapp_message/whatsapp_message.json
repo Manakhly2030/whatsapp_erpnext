@@ -111,7 +111,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-11-24 03:47:25.103081",
+ "modified": "2023-11-25 03:41:43.862007",
  "modified_by": "Administrator",
  "module": "WhatsApp ERPNext",
  "name": "WhatsApp Message",
@@ -162,6 +162,14 @@
   {
    "color": "Light Blue",
    "title": "Delivered"
+  },
+  {
+   "color": "Green",
+   "title": "Received"
+  },
+  {
+   "color": "Cyan",
+   "title": "Sent"
   }
  ],
  "track_seen": 1
