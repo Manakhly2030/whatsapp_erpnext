@@ -62,7 +62,7 @@ def post():
 					"message": message['text']['body'],
 					"message_id": message['id'],
 					"content_type":message_type,
-					"stauts": "Received"
+					"status": "Received"
 				}).insert(ignore_permissions=True)
 			elif message_type in ["image", "audio", "video", "document"]:
 				media_id = message[message_type]["id"]
@@ -100,7 +100,7 @@ def post():
 							"message": f"/files/{file_name}",
 							"attach" : f"/files/{file_name}",
 							"content_type" : message_type,
-							"stauts": "Received"
+							"status": "Received"
 						}).insert(ignore_permissions=True)
 	else:
 		changes = None
@@ -139,7 +139,8 @@ def update_message_status(data):
 	name = frappe.db.get_value("WhatsApp Message", filters={"message_id": id})
 
 	doc = frappe.get_doc("WhatsApp Message", name)
-	doc.status = status.title()
+	if doc.type != "Incoming":
+		doc.status = status.title()
 	if conversation:
 		doc.conversation_id = conversation
 	doc.save(ignore_permissions=True)

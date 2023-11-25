@@ -147,10 +147,11 @@ def send_template_message(self, doc: Document, contact_no = None):
 								}
 							}]
 						})
+						label = f"{doc_data['doctype']} - {doc_data['name']}"
 
-					notify(self, data)
+					notify(self, data, label)
 
-def notify(self, data):
+def notify(self, data, label = None):
 	"""Notify."""
 	settings = frappe.get_doc(
 		"WhatsApp Settings", "WhatsApp Settings",
@@ -174,7 +175,8 @@ def notify(self, data):
 			"to": data['to'],
 			"message_type": "Template",
 			"message_id": response['messages'][0]['id'],
-			"content_type": "document"
+			"content_type": "document",
+			"label": label
 		}).save(ignore_permissions=True)
 
 		frappe.msgprint("WhatsApp Message Triggered", indicator="green", alert=True)
