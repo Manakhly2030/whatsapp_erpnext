@@ -205,7 +205,7 @@ def send_notification(notification, ref_doctype, ref_docname, mobile_no = None):
 	
 	send_template_message(noti_doc, ref_doc, mobile_no)
 
-def save_whatsapp_log(data, response, label = None):
+def save_whatsapp_log(data, message_id, label = None):
 	frappe.get_doc({
 			"doctype": "WhatsApp Message",
 			"type": "Outgoing",
