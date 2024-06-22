@@ -39,6 +39,8 @@ def post():
 	"""Post."""
 	data = frappe.local.form_dict
 
+	frappe.log_error(message=str(data), title="Webhook Data")
+
 	if data:
 		frappe.get_doc({
 			"doctype": "Integration Request",
