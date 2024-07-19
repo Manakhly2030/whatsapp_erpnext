@@ -148,7 +148,7 @@ def send_template_message(self, doc: Document, contact_no = None):
 								}
 							}]
 						})
-						label = f"{doc_data['doctype']} - {doc_data['name']}"
+					label = f"{doc_data['doctype']} - {doc_data['name']}"
 
 					notify(self, data, label)
 
