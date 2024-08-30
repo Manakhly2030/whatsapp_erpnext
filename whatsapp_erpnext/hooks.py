@@ -152,23 +152,29 @@ doc_events = {
 # Scheduled Tasks
 # ---------------
 
-# scheduler_events = {
-#	"all": [
-#		"whatsapp_erpnext.tasks.all"
-#	],
-#	"daily": [
-#		"whatsapp_erpnext.tasks.daily"
-#	],
-#	"hourly": [
-#		"whatsapp_erpnext.tasks.hourly"
-#	],
-#	"weekly": [
-#		"whatsapp_erpnext.tasks.weekly"
-#	],
-#	"monthly": [
-#		"whatsapp_erpnext.tasks.monthly"
-#	],
-# }
+scheduler_events = {
+	# "all": [
+		# "whatsapp_erpnext.schedule.schedule_comments"
+	# ],
+    
+	# "daily": [
+	# 	"whatsapp_erpnext.tasks.daily"
+	# ],
+	# "hourly": [
+	# 	"whatsapp_erpnext.tasks.hourly"
+	# ],
+	# "weekly": [
+	# 	"whatsapp_erpnext.tasks.weekly"
+	# ],
+	# "monthly": [
+	# 	"whatsapp_erpnext.tasks.monthly"
+	# ],
+    "cron":{
+		"0 0 * * *": [
+			"whatsapp_erpnext.schedule.schedule_comments",
+        ], 
+       }
+}
 
 # Testing
 # -------

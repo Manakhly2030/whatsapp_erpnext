@@ -54,12 +54,53 @@ def post():
 
 	if messages:
 		for message in messages:
+			if message['from']:
+				contact_query = f"""
+				SELECT 
+                    c.name, 
+                    dl.link_doctype, 
+                    dl.link_name 
+                FROM 
+                    `tabContact` AS c 
+                JOIN 
+                    `tabContact Phone` AS cp 
+                    ON cp.parent = c.name 
+                JOIN 
+                    `tabDynamic Link` AS dl 
+                    ON dl.parent = c.name 
+                WHERE 
+                    LENGTH(cp.phone) >= 10 
+                    AND (cp.phone = '{message['from']}' 
+                    OR cp.phone LIKE '%{message['from']}' 
+                    OR '{message['from']}' LIKE CONCAT("%", cp.phone))
+                ORDER BY 
+                    CASE dl.link_doctype
+                        WHEN 'Customer' THEN 1
+                        WHEN 'Lead' THEN 2
+                        ELSE 3
+                    END,
+                    c.modified DESC
+                LIMIT 1;
+			"""
+
+			contact_details = frappe.db.sql(contact_query, as_dict=True)
+
+			link_to = ""
+			link_name = ""
+			if contact_details:
+				contact = contact_details[0]
+				link_to = contact.get("link_doctype", "")
+				link_name = contact.get("link_name", "")
 			message_type = message['type']
 			if message_type == 'text':
 				frappe.get_doc({
 					"doctype": "WhatsApp Message",
 					"type": "Incoming",
 					"from": message['from'],
+					"message_datetime": frappe.utils.now(),
+					"date": frappe.utils.today(),
+					"link_to": link_to,
+					"link_name": link_name,
 					"message": message['text']['body'],
 					"message_id": message['id'],
 					"content_type":message_type,
@@ -69,7 +110,6 @@ def post():
 				media_id = message[message_type]["id"]
 				headers = {
 					'Authorization': 'Bearer ' + token
-
 				}
 				response = requests.get(f'{url}{media_id}/', headers=headers)
 
@@ -97,6 +137,10 @@ def post():
 							"doctype": "WhatsApp Message",
 							"type": "Incoming",
 							"from": message['from'],
+							"message_datetime": message['message_datetime'],
+							"date": message['date'],
+							"link_to": message['link_to'],
+							"link_name": message['link_name'],
 							"message_id": message['id'],
 							"message": f"/files/{file_name}",
 							"attach" : f"/files/{file_name}",
