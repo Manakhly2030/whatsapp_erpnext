@@ -92,6 +92,7 @@ def send_template_message(self, doc: Document, contact_no=None):
                 if not contact_no:
                     contact_no = doc.get(row.receiver_by_document_field)
                 if contact_no:
+                    # Get contact details from phone number
                     contact_query = f"""
 					SELECT 
 						dl.link_doctype, 
@@ -236,7 +237,7 @@ def send_notification(notification, ref_doctype, ref_docname, mobile_no=None):
 
     send_template_message(noti_doc, ref_doc, mobile_no)
 
-
+# format_message function start
 def format_message(data):
     template = data.get("template", {})
     components = template.get("components", [])
@@ -251,10 +252,11 @@ def format_message(data):
             if param.get("type") == "text":
                 message_parts.append(param.get("text", ""))
     
-    # Return as a single string
     return " , ".join(message_parts)
+# format_message function end 
 
 def save_whatsapp_log(self, data, message_id, label=None):
+    # format_message function start
     formatted_message = format_message(data)
     
     # Get template components and extract body parameters
@@ -270,7 +272,7 @@ def save_whatsapp_log(self, data, message_id, label=None):
     
     # Function to replace placeholders with values
     def replace_placeholders(template, values):
-
+        # replace {} to parameter index in message
         for index, value in enumerate(values):
             template = re.sub(r'\{\{' + str(index) + r'\}\}', value, template, count=1)
         
@@ -279,7 +281,8 @@ def save_whatsapp_log(self, data, message_id, label=None):
     # Combine formatted_message and message_parts
     all_message_parts = [formatted_message] + message_parts
     complete_message = replace_placeholders(self.message, all_message_parts)
-    
+    # format_message function end 
+
     # Save the WhatsApp message document
     whatsapp_message = frappe.get_doc({
         "doctype": "WhatsApp Message",
