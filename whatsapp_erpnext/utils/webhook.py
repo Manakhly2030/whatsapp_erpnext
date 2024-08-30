@@ -57,6 +57,7 @@ def post():
 	if messages:
 		for message in messages:
 			if message['from']:
+				# Get contact details from phone number
 				contact_query = f"""
 				SELECT 
                     c.name, 
