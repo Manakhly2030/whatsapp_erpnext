@@ -1,4 +1,6 @@
 import frappe
+from datetime import timedelta
+from frappe.utils import  get_datetime
 
 def schedule_comments():
     calls = frappe.db.get_list(
@@ -34,3 +36,47 @@ def schedule_comments():
         doc.comment = comment.name
         doc.flags.ignore_mandatory = True
         doc.save()
+
+
+def bg_message_contact_generation():
+    message = frappe.db.get_list(
+        "WhatsApp Message",
+        filters={"link_to": ('is','not set'), "link_name": ('is','not set'), "contact": ('is','not set')},
+        fields=["name", "to", "from"],
+
+    )
+    for msg in message:
+        contact = msg.get("to") if msg.get("to") else msg.get("from")
+        contact_query = f"""
+                        SELECT 
+                            c.name, 
+                            dl.link_doctype, 
+                            dl.link_name 
+                            FROM 
+                                `tabContact` AS c 
+                            JOIN 
+                                `tabContact Phone` AS cp 
+                                ON cp.parent = c.name 
+                            JOIN 
+                                `tabDynamic Link` AS dl 
+                                ON dl.parent = c.name 
+                            WHERE 
+                                LENGTH(cp.phone) >= 10
+                                AND cp.phone = '{contact}'
+                            ORDER BY 
+                            CASE dl.link_doctype
+                                WHEN 'Customer' THEN 1
+                                WHEN 'Lead' THEN 2
+                                ELSE 3
+                            END,
+                            c.modified DESC
+                        LIMIT 1;
+                    """
+        contact_details = frappe.db.sql(contact_query, as_dict=True)
+        if not contact_details:
+            continue
+        whatsapp_message = frappe.get_doc("WhatsApp Message", msg.get("name"))
+        whatsapp_message.link_to = contact_details[0].get("link_doctype", "")
+        whatsapp_message.link_name = contact_details[0].get("link_name", "")
+        whatsapp_message.contact = contact_details[0].get("name", "")
+        whatsapp_message.save()

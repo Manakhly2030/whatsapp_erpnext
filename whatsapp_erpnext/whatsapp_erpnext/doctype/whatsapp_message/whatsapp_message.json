@@ -18,6 +18,7 @@
   "column_break_5",
   "link_to",
   "link_name",
+  "contact",
   "message_id",
   "message_type",
   "conversation_id",
@@ -145,11 +146,18 @@
    "label": "Comment",
    "options": "Comment",
    "read_only": 1
+  },
+  {
+   "fieldname": "contact",
+   "fieldtype": "Link",
+   "label": "Contact",
+   "options": "Contact",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-08-22 15:45:31.826017",
+ "modified": "2024-08-30 18:12:54.604329",
  "modified_by": "Administrator",
  "module": "WhatsApp ERPNext",
  "name": "WhatsApp Message",

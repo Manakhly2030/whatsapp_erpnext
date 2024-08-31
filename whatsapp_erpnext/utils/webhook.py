@@ -90,10 +90,12 @@ def post():
 
 			link_to = ""
 			link_name = ""
+			contact_name = ""
 			if contact_details:
 				contact = contact_details[0]
 				link_to = contact.get("link_doctype", "")
 				link_name = contact.get("link_name", "")
+				contact_name = contact.get("name", "")
 			message_type = message['type']
 			if message_type == 'text':
 				frappe.get_doc({
@@ -104,6 +106,7 @@ def post():
 					"date": frappe.utils.today(),
 					"link_to": link_to,
 					"link_name": link_name,
+					"contact": contact_name,
 					"message": message['text']['body'],
 					"message_id": message['id'],
 					"content_type":message_type,

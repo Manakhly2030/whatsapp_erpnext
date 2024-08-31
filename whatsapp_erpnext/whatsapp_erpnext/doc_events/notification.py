@@ -95,20 +95,21 @@ def send_template_message(self, doc: Document, contact_no=None):
                     # Get contact details from phone number
                     contact_query = f"""
 					SELECT 
-						dl.link_doctype, 
-						dl.link_name 
-					FROM 
-						`tabContact` AS c 
-					JOIN 
-						`tabContact Phone` AS cp 
-						ON cp.parent = c.name 
-					JOIN 
-						`tabDynamic Link` AS dl 
-						ON dl.parent = c.name 
-					WHERE 
-						LENGTH(cp.phone) >= 10
-                        AND cp.phone = '{contact_no}'
-					ORDER BY 
+                        c.name, 
+                        dl.link_doctype, 
+                        dl.link_name 
+                        FROM 
+                            `tabContact` AS c 
+                        JOIN 
+                            `tabContact Phone` AS cp 
+                            ON cp.parent = c.name 
+                        JOIN 
+                            `tabDynamic Link` AS dl 
+                            ON dl.parent = c.name 
+                        WHERE 
+                            LENGTH(cp.phone) >= 10
+                            AND cp.phone = '{contact_no}'
+                        ORDER BY 
 						CASE dl.link_doctype
 							WHEN 'Customer' THEN 1
 							WHEN 'Lead' THEN 2
@@ -122,16 +123,19 @@ def send_template_message(self, doc: Document, contact_no=None):
 
                     link_to = ""
                     link_name = ""
+                    contact_name = ""
                     if contact_details:
                         contact = contact_details[0]
                         link_to = contact.get("link_doctype", "")
                         link_name = contact.get("link_name", "")
+                        contact_name = contact.get("name", "")
 
                     data = {
                         "messaging_product": "whatsapp",
                         "to": contact_no,
                         "link_to": link_to,
                         "link_name": link_name,
+                        "contact": contact_name,
                         "message_datetime": frappe.utils.now(),
                         "date": frappe.utils.today(),
                         "type": "template",
@@ -291,6 +295,7 @@ def save_whatsapp_log(self, data, message_id, label=None):
         "to": data["to"],
         "link_to": data["link_to"],
         "link_name": data["link_name"],
+        "contact": data["contact"],
         "message_datetime": data["message_datetime"],
         "date": data["date"],
         "message_type": "Template",
