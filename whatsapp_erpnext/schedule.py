@@ -1,6 +1,4 @@
 import frappe
-from datetime import timedelta
-from frappe.utils import  get_datetime
 
 def schedule_comments():
     calls = frappe.db.get_list(
@@ -75,6 +73,7 @@ def bg_message_contact_generation():
         contact_details = frappe.db.sql(contact_query, as_dict=True)
         if not contact_details:
             continue
+        print(contact_details)
         whatsapp_message = frappe.get_doc("WhatsApp Message", msg.get("name"))
         whatsapp_message.link_to = contact_details[0].get("link_doctype", "")
         whatsapp_message.link_name = contact_details[0].get("link_name", "")
