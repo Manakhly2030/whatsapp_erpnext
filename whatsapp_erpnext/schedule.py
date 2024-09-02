@@ -1,7 +1,7 @@
 import frappe
 
-def schedule_comments():
-    calls = frappe.db.get_list(
+def schedule_comments2():
+    message = frappe.db.get_list(
         "WhatsApp Message",
         {
             "comment": ('is','not set'),
@@ -12,9 +12,8 @@ def schedule_comments():
         page_length=100,
     )
 
-    for call in calls:
-        doc = frappe.get_doc("WhatsApp Message", call.name)
-        # whatsapp_message_url = doc.get_url()
+    for msg in message:
+        doc = frappe.get_doc("WhatsApp Message", msg.name)
         
         # comment_text = doc.get_comment_text(whatsapp_message_url)
         comment = frappe.get_doc(
@@ -30,7 +29,7 @@ def schedule_comments():
         )
         
         comment.save()
-        frappe.db.set_value('Comment',comment.name, 'creation', doc.message_datetime)
+        # frappe.db.set_value('Comment',comment.name, 'creation', doc.message_datetime)
         doc.comment = comment.name
         doc.flags.ignore_mandatory = True
         doc.save()

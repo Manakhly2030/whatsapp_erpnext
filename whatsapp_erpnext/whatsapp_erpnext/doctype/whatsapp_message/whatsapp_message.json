@@ -123,12 +123,14 @@
   {
    "fieldname": "date",
    "fieldtype": "Date",
+   "in_list_view": 1,
    "label": "Date",
    "read_only": 1
   },
   {
    "fieldname": "link_to",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Party Type",
    "options": "DocType",
    "read_only": 1
@@ -136,6 +138,7 @@
   {
    "fieldname": "link_name",
    "fieldtype": "Dynamic Link",
+   "in_list_view": 1,
    "label": "Party",
    "options": "link_to",
    "read_only": 1
@@ -150,6 +153,7 @@
   {
    "fieldname": "contact",
    "fieldtype": "Link",
+   "in_list_view": 1,
    "label": "Contact",
    "options": "Contact",
    "read_only": 1
@@ -157,7 +161,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-08-30 18:12:54.604329",
+ "modified": "2024-09-02 16:34:50.056562",
  "modified_by": "Administrator",
  "module": "WhatsApp ERPNext",
  "name": "WhatsApp Message",
