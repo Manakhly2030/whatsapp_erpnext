@@ -57,32 +57,32 @@ def post():
 	if messages:
 		for message in messages:
 			contact_no = message.get('from')
-			contact_name, link_to, link_name = None, None, None
 			if contact_no:
+					short_contact_no = contact_no[-10:]
 					contact_query = f"""
 					SELECT 
                         c.name, 
                         dl.link_doctype, 
                         dl.link_name 
-                        FROM 
-                            `tabContact` AS c 
-                        JOIN 
-                            `tabContact Phone` AS cp 
-                            ON cp.parent = c.name 
-                        JOIN 
-                            `tabDynamic Link` AS dl 
-                            ON dl.parent = c.name 
-                        WHERE 
-                            LENGTH(cp.phone) >= 10
-                            AND cp.phone = '{contact_no}'
-                        ORDER BY 
-						CASE dl.link_doctype
-							WHEN 'Customer' THEN 1
-							WHEN 'Lead' THEN 2
-							ELSE 3
-						END,
-						c.modified DESC
-					LIMIT 1;
+                    FROM 
+                        `tabContact` AS c 
+                    JOIN 
+                        `tabContact Phone` AS cp 
+                        ON cp.parent = c.name 
+                    JOIN 
+                        `tabDynamic Link` AS dl 
+                        ON dl.parent = c.name 
+                    WHERE 
+                        LENGTH(cp.phone) >= 10
+                        AND (cp.phone = '{contact_no}' OR cp.phone LIKE '%{short_contact_no}')
+                    ORDER BY 
+                        CASE dl.link_doctype
+                            WHEN 'Customer' THEN 1
+                            WHEN 'Lead' THEN 2
+                            ELSE 3
+                        END,
+                        c.modified DESC
+                    LIMIT 1;
 				"""
 
 			contact_details = frappe.db.sql(contact_query, as_dict=True)
@@ -95,6 +95,9 @@ def post():
 				link_to = contact.get("link_doctype", "")
 				link_name = contact.get("link_name", "")
 				contact_name = contact.get("name", "")
+			else:
+				# Log if no contact is found
+				frappe.log_error(message=f"No contact found for phone number: {contact_no}", title="Contact Not Found")
 			message_type = message['type']
 			if message_type == 'text':
 				frappe.get_doc({
