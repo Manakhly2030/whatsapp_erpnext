@@ -163,12 +163,12 @@
    "fieldname": "file_name",
    "fieldtype": "Data",
    "label": "File Name",
-   "read_only": 1
+   "set_only_once": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-04 10:37:36.088136",
+ "modified": "2024-09-04 12:23:37.904995",
  "modified_by": "Administrator",
  "module": "WhatsApp ERPNext",
  "name": "WhatsApp Message",

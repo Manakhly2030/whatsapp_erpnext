@@ -138,6 +138,8 @@ def post():
 						file_data = media_response.content
 						time.sleep(1)
 
+						file_name= message.get('document', {}).get('filename', None) or f"{messaage_datetime}.{file_extension}"
+
 						whatsapp_message_doc = frappe.get_doc({
 							"doctype": "WhatsApp Message",
 							"type": "Incoming",
@@ -148,12 +150,13 @@ def post():
 							"link_name": link_name,
 							"contact": contact_name,
 							"message_id": message['id'],
-							"file_name": message['document']['filename'],
+							"file_name": file_name,
 							# "message": f"/files/{file_name}",
 							# "attach" : f"/files/{file_name}",
 							"content_type": message_type,
 							"status": "Received"
 						}).insert(ignore_permissions=True)
+
 
 						file_doc = frappe.get_doc(
 							{
@@ -161,7 +164,7 @@ def post():
 								"attached_to_doctype": "WhatsApp Message",
 								"attached_to_name": whatsapp_message_doc.name,
 								"attached_to_field": "attach",
-								"file_name": message['document']['filename'],
+								"file_name": file_name,
 								"is_private": cint(1),
 								"content": file_data,
 							}

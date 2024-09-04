@@ -20,8 +20,9 @@ class WhatsAppMessage(Document):
 				"type": self.content_type
 			}
 			if self.content_type in ['document', 'image', 'video']:
-				 data[self.content_type.lower()] = {
+				data[self.content_type.lower()] = {
 					"link": link,
+					"filename": self.file_name,
 					"caption": self.message
 				}
 			elif self.content_type == "text":
