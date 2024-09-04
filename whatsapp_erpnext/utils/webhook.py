@@ -6,6 +6,9 @@ import time
 from frappe.utils import get_site_name
 from werkzeug.wrappers import Response
 import frappe.utils
+from datetime import datetime
+import pytz
+from frappe.utils import cint
 
 settings = frappe.get_doc(
 			"WhatsApp Settings", "WhatsApp Settings",
@@ -95,17 +98,19 @@ def post():
 				link_to = contact.get("link_doctype", "")
 				link_name = contact.get("link_name", "")
 				contact_name = contact.get("name", "")
-			else:
+			# else:
 				# Log if no contact is found
-				frappe.log_error(message=f"No contact found for phone number: {contact_no}", title="Contact Not Found")
+				# frappe.log_error(message=f"No contact found for phone number: {contact_no}", title="Contact Not Found")
 			message_type = message['type']
+			messaage_datetime = datetime.fromtimestamp(cint(message['timestamp']))
+			
 			if message_type == 'text':
 				frappe.get_doc({
 					"doctype": "WhatsApp Message",
 					"type": "Incoming",
 					"from": message['from'],
-					"message_datetime": frappe.utils.now(),
-					"date": frappe.utils.today(),
+					"message_datetime": messaage_datetime,
+					"date": messaage_datetime.date(),
 					"link_to": link_to,
 					"link_name": link_name,
 					"contact": contact_name,
@@ -114,6 +119,7 @@ def post():
 					"content_type":message_type,
 					"status": "Received"
 				}).insert(ignore_permissions=True)
+			
 			elif message_type in ["image", "audio", "video", "document"]:
 				media_id = message[message_type]["id"]
 				headers = {
@@ -130,32 +136,40 @@ def post():
 					media_response = requests.get(media_url, headers=headers)
 					if media_response.status_code == 200:
 						file_data = media_response.content
-
-						file_path = f"{bench_location}/sites/{site_name}/public/files/"
-
-						file_name = f"{frappe.generate_hash(length=10)}.{file_extension}"
-						file_full_path = file_path + file_name
-
-						with open(file_full_path, "wb") as file:
-							file.write(file_data)
-
 						time.sleep(1)
 
-						frappe.get_doc({
+						whatsapp_message_doc = frappe.get_doc({
 							"doctype": "WhatsApp Message",
 							"type": "Incoming",
 							"from": message['from'],
-							"message_datetime": message['message_datetime'],
-							"date": message['date'],
-							"link_to": message['link_to'],
-							"link_name": message['link_name'],
-							"contact": message['contact'],
+							"message_datetime": messaage_datetime,
+							"date": messaage_datetime.date(),
+							"link_to": link_to,
+							"link_name": link_name,
+							"contact": contact_name,
 							"message_id": message['id'],
-							"message": f"/files/{file_name}",
-							"attach" : f"/files/{file_name}",
-							"content_type" : message_type,
+							"file_name": message['document']['filename'],
+							# "message": f"/files/{file_name}",
+							# "attach" : f"/files/{file_name}",
+							"content_type": message_type,
 							"status": "Received"
 						}).insert(ignore_permissions=True)
+
+						file_doc = frappe.get_doc(
+							{
+								"doctype": "File",
+								"attached_to_doctype": "WhatsApp Message",
+								"attached_to_name": whatsapp_message_doc.name,
+								"attached_to_field": "attach",
+								"file_name": message['document']['filename'],
+								"is_private": cint(1),
+								"content": file_data,
+							}
+						).save(ignore_permissions=True)
+
+						whatsapp_message_doc.db_set("attach", file_doc.file_url, update_modified=False)
+						whatsapp_message_doc.db_set("message", file_doc.file_url, update_modified=False)
+
 	else:
 		changes = None
 		try:
