@@ -203,8 +203,8 @@ def notify(self, data, label=None):
             data=json.dumps(data),
         )
 
-        frappe.log_error(message=str(response), title="WhatsApp Message Triggered")
-        frappe.log_error(message=str(data), title="WhatsApp Message Data")
+        # frappe.log_error(message=str(response), title="WhatsApp Message Triggered")
+        # frappe.log_error(message=str(data), title="WhatsApp Message Data")
 
         message_id = response["messages"][0]["id"]
         enqueue(save_whatsapp_log,self=self, data=data, message_id=message_id, label=label)
