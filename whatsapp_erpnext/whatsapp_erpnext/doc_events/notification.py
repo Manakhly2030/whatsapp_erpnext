@@ -207,6 +207,12 @@ def notify(self, data, label=None):
 
     frappe.log_error(message=str(response), title="WhatsApp Message Response")
 
+        # frappe.log_error(message=str(response), title="WhatsApp Message Triggered")
+        # frappe.log_error(message=str(data), title="WhatsApp Message Data")
+
+    message_id = response["messages"][0]["id"]
+    enqueue(save_whatsapp_log,self=self, data=data, message_id=message_id, label=label)
+
     message_id = response["messages"][0]["id"]
     enqueue(save_whatsapp_log,self=self, data=data, message_id=message_id, label=label)
 

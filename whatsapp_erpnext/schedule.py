@@ -18,10 +18,10 @@ def schedule_comments2():
 
         if doc.type == "Outgoing":
             content = generate_html_message(doc.document_name, doc.doctype_link_name, doc.message)
-            print(content)
+            # print(content)
         elif doc.type == "Incoming":
             content = doc.message
-            print(content)  
+            # print(content)  
         else:
             continue
         # comment_text = doc.get_comment_text(whatsapp_message_url)
