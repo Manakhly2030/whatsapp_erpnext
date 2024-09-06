@@ -15,6 +15,8 @@
   "from",
   "message_datetime",
   "date",
+  "document_name",
+  "doctype_link_name",
   "column_break_5",
   "link_to",
   "link_name",
@@ -23,7 +25,6 @@
   "message_type",
   "conversation_id",
   "content_type",
-  "file_name",
   "attach",
   "message",
   "comment"
@@ -122,6 +123,7 @@
    "read_only": 1
   },
   {
+   "columns": 1,
    "fieldname": "date",
    "fieldtype": "Date",
    "in_list_view": 1,
@@ -129,6 +131,7 @@
    "read_only": 1
   },
   {
+   "columns": 1,
    "fieldname": "link_to",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -137,6 +140,7 @@
    "read_only": 1
   },
   {
+   "columns": 1,
    "fieldname": "link_name",
    "fieldtype": "Dynamic Link",
    "in_list_view": 1,
@@ -152,6 +156,7 @@
    "read_only": 1
   },
   {
+   "columns": 1,
    "fieldname": "contact",
    "fieldtype": "Link",
    "in_list_view": 1,
@@ -160,15 +165,23 @@
    "read_only": 1
   },
   {
-   "fieldname": "file_name",
-   "fieldtype": "Data",
-   "label": "File Name",
+   "fieldname": "document_name",
+   "fieldtype": "Link",
+   "label": "Document Name",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "doctype_link_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Doctype Link Name",
+   "options": "document_name",
    "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-04 10:37:36.088136",
+ "modified": "2024-09-05 16:14:43.211188",
  "modified_by": "Administrator",
  "module": "WhatsApp ERPNext",
  "name": "WhatsApp Message",

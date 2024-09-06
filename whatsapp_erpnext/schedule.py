@@ -1,5 +1,6 @@
 import frappe
 
+
 def schedule_comments2():
     message = frappe.db.get_list(
         "WhatsApp Message",
@@ -14,7 +15,15 @@ def schedule_comments2():
 
     for msg in message:
         doc = frappe.get_doc("WhatsApp Message", msg.name)
-        
+
+        if doc.type == "Outgoing":
+            content = generate_html_message(doc.document_name, doc.doctype_link_name, doc.message)
+            print(content)
+        elif doc.type == "Incoming":
+            content = doc.message
+            print(content)  
+        else:
+            continue
         # comment_text = doc.get_comment_text(whatsapp_message_url)
         comment = frappe.get_doc(
             {
@@ -24,7 +33,7 @@ def schedule_comments2():
                 "reference_name": doc.link_name,
                 "comment_by": frappe.session.user,
                 "subject": doc.type,
-                "content": doc.message,
+                "content": content,
             }
         )
         
@@ -34,6 +43,25 @@ def schedule_comments2():
         doc.flags.ignore_mandatory = True
         doc.save()
 
+def generate_html_message(doctype_link_name, document_name, message):
+    base_url = frappe.utils.get_url()
+
+    doctype_slug = doctype_link_name.lower().replace(" ", "-")
+
+    if document_name:
+        document_link = f"{base_url}/app/{doctype_slug}/{document_name}"
+
+        formatted_message = f"""
+        <b>Whatsapp Message Sent for <a href="{document_link}" target="_blank">{doctype_link_name} - {document_name}</a></b><br>
+        {message}
+        """
+    else:
+        formatted_message = f"""
+        <b>Whatsapp Message Sent for {doctype_link_name}</b><br>
+        {message}
+        """
+    
+    return formatted_message
 
 def bg_message_contact_generation():
     message = frappe.db.get_list(
