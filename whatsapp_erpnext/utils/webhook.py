@@ -41,8 +41,9 @@ def get():
 def post():
 	"""Post."""
 	data = frappe.local.form_dict
-
-	frappe.log_error(message=str(data), title="Webhook Data")
+	error_field = ""
+	error_log = frappe.log_error(message=str(data), title="Webhook Data")
+	error_field  = error_log.error
 
 	if data:
 		frappe.get_doc({
@@ -117,6 +118,7 @@ def post():
 					"message": message['text']['body'],
 					"message_id": message['id'],
 					"content_type":message_type,
+					"error_field": str(data),
 					"status": "Received"
 				}).insert(ignore_permissions=True)
 			
@@ -149,6 +151,7 @@ def post():
 							"link_to": link_to,
 							"link_name": link_name,
 							"contact": contact_name,
+							"error_field": error_field,
 							"message_id": message['id'],
 							"file_name": file_name,
 							# "message": f"/files/{file_name}",
@@ -203,7 +206,7 @@ def update_template_status(data):
 
 
 
-def update_message_status(data):
+def update_message_status(data, ):
 	"""Update message status."""
 	id = data['statuses'][0]['id']
 	status = data['statuses'][0]['status']
@@ -215,4 +218,7 @@ def update_message_status(data):
 		doc.status = status.title()
 	if conversation:
 		doc.conversation_id = conversation
+	if status == "failed":
+		doc.error_field = str(data)
+	
 	doc.save(ignore_permissions=True)

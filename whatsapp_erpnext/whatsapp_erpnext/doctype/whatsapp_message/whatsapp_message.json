@@ -27,6 +27,8 @@
   "content_type",
   "attach",
   "message",
+  "mesaage_data",
+  "error_field",
   "comment"
  ],
  "fields": [
@@ -177,11 +179,23 @@
    "label": "Doctype Link Name",
    "options": "document_name",
    "read_only": 1
+  },
+  {
+   "fieldname": "error_field",
+   "fieldtype": "Small Text",
+   "label": "WhatsApp Message Response",
+   "read_only": 1
+  },
+  {
+   "fieldname": "mesaage_data",
+   "fieldtype": "Small Text",
+   "label": "Message Data",
+   "read_only": 1
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-06 14:13:40.982118",
+ "modified": "2024-09-11 12:04:27.205238",
  "modified_by": "Administrator",
  "module": "WhatsApp ERPNext",
  "name": "WhatsApp Message",

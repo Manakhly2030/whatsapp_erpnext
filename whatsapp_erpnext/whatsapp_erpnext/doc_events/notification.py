@@ -120,6 +120,7 @@ def send_template_message(self, doc: Document, contact_no=None):
 				"""
 
                     contact_details = frappe.db.sql(contact_query, as_dict=True)
+                    error_field = ""
 
                     link_to = ""
                     link_name = ""
@@ -140,6 +141,7 @@ def send_template_message(self, doc: Document, contact_no=None):
                         "doctype_link_name": doc_data["name"],
                         "message_datetime": frappe.utils.now(),
                         "date": frappe.utils.today(),
+                        "error_field": error_field,
                         "type": "template",
                         "template": {
                             "name": self.custom_whatsapp_template,
@@ -205,7 +207,8 @@ def notify(self, data, label=None):
         data=json.dumps(data),
     )
 
-    frappe.log_error(message=str(response), title="WhatsApp Message Response")
+    error_log = frappe.log_error(message=str(response), title="WhatsApp Message Response")
+    data["error_field"] = error_log.error  # Save the message in the error_field
 
         # frappe.log_error(message=str(response), title="WhatsApp Message Triggered")
         # frappe.log_error(message=str(data), title="WhatsApp Message Data")
@@ -213,8 +216,8 @@ def notify(self, data, label=None):
     message_id = response["messages"][0]["id"]
     enqueue(save_whatsapp_log,self=self, data=data, message_id=message_id, label=label)
 
-    message_id = response["messages"][0]["id"]
-    enqueue(save_whatsapp_log,self=self, data=data, message_id=message_id, label=label)
+    # message_id = response["messages"][0]["id"]
+    # enqueue(save_whatsapp_log,self=self, data=data, message_id=message_id, label=label)
 
     frappe.msgprint("WhatsApp Message Triggered", indicator="green", alert=False)
 
@@ -301,6 +304,7 @@ def save_whatsapp_log(self, data, message_id, label=None):
     whatsapp_message = frappe.get_doc({
         "doctype": "WhatsApp Message",
         "type": "Outgoing",
+        "mesaage_data": str(data.get("template", "")),
         "message": complete_message,
         "to": data["to"],
         "link_to": data["link_to"],
@@ -314,5 +318,6 @@ def save_whatsapp_log(self, data, message_id, label=None):
         "label": label,
         "document_name": data.get("document_name"),
         "doctype_link_name": data.get("doctype_link_name"),
+        "error_field": data.get("error_field"),
     })
     whatsapp_message.save(ignore_permissions=True)
