@@ -52,6 +52,7 @@ def post():
 			"meta_data": json.dumps(data)
 		}).insert(ignore_permissions=True)
 
+
 	messages = []
 	try:
 		messages = data["entry"][0]["changes"][0]["value"].get("messages", [])
