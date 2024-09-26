@@ -207,8 +207,8 @@ def notify(self, data, label=None):
         data=json.dumps(data),
     )
 
-    error_log = frappe.log_error(message=str(response), title="WhatsApp Message Response")
-    data["error_field"] = error_log.error  # Save the message in the error_field
+    # error_log = frappe.log_error(message=str(response), title="WhatsApp Message Response")
+    data["error_field"] = str(response)  # Save the message in the error_field
 
         # frappe.log_error(message=str(response), title="WhatsApp Message Triggered")
         # frappe.log_error(message=str(data), title="WhatsApp Message Data")

@@ -42,8 +42,8 @@ def post():
 	"""Post."""
 	data = frappe.local.form_dict
 	error_field = ""
-	error_log = frappe.log_error(message=str(data), title="Webhook Data")
-	error_field  = error_log.error
+	# error_log = frappe.log_error(message=str(data), title="Webhook Data")
+	error_field  = str(data)
 
 	if data:
 		frappe.get_doc({
