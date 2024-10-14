@@ -1,6 +1,8 @@
+import json
 import frappe
-
-
+from frappe.integrations.utils import make_post_request
+from frappe.utils.background_jobs import enqueue
+from whatsapp_erpnext.whatsapp_erpnext.doc_events.notification import save_whatsapp_log
 def schedule_comments2():
     message = frappe.db.get_list(
         "WhatsApp Message",
@@ -46,18 +48,20 @@ def schedule_comments2():
 def generate_html_message(doctype_link_name, document_name, message):
     base_url = frappe.utils.get_url()
 
-    doctype_slug = doctype_link_name.lower().replace(" ", "-")
+    if doctype_link_name:
+        doctype_slug = doctype_link_name.lower().replace(" ", "-")
+    else:
+        doctype_slug = "unknown-doctype"
 
     if document_name:
         document_link = f"{base_url}/app/{doctype_slug}/{document_name}"
-
         formatted_message = f"""
         <b>Whatsapp Message Sent for <a href="{document_link}" target="_blank">{doctype_link_name} - {document_name}</a></b><br>
         {message}
         """
     else:
         formatted_message = f"""
-        <b>Whatsapp Message Sent for {doctype_link_name}</b><br>
+        <b>Whatsapp Message Sent for {doctype_link_name if doctype_link_name else ''}</b><br>
         {message}
         """
     
@@ -109,3 +113,64 @@ def bg_message_contact_generation():
         whatsapp_message.link_name = contact_details[0].get("link_name", "")
         whatsapp_message.contact = contact_details[0].get("name", "")
         whatsapp_message.save()
+        
+def retry_failed_whatsapp_messages():
+    """Retry sending failed WhatsApp messages."""
+    settings = frappe.get_doc("WhatsApp Settings", "WhatsApp Settings")
+    failed_messages = frappe.get_list("WhatsApp Message", filters={"status": "Failed","retry_count":["<",5]}, fields=["name"], limit_page_length=50)
+
+    for message in failed_messages:
+        whatsapp_msg = frappe.get_doc("WhatsApp Message", message.name)
+        
+        data = prepare_retry_data(whatsapp_msg)
+        if not data:
+            continue
+        token = settings.get_password("token")
+
+        headers = {
+            "authorization": f"Bearer {token}",
+            "content-type": "application/json"
+        }
+
+        response = make_post_request(
+            f"{settings.url}/{settings.version}/{settings.phone_id}/messages",
+            headers=headers,
+            data=json.dumps(data),
+        )
+
+        whatsapp_msg.rejection_remakrs = ""
+        whatsapp_msg.retry_count += 1
+        if "messages" in response and response["messages"]:
+            message_id = response["messages"][0]["id"]
+            whatsapp_msg.message_id = message_id
+            whatsapp_msg.error_field = str(response)  
+            whatsapp_msg.save(ignore_permissions=True)  # Save changes
+            frappe.msgprint(f"WhatsApp message {whatsapp_msg.name} retried successfully", indicator="green", alert=False)
+            enqueue(save_whatsapp_log, self=whatsapp_msg, data=data, message_id=message_id, label=whatsapp_msg.label)
+
+        
+def prepare_retry_data(whatsapp_msg):
+    if not whatsapp_msg.mesaage_data:
+        return
+
+    error_field = json.loads(whatsapp_msg.error_field.replace("'", '"'))
+    statuses = error_field.get("statuses", [])
+
+    for status in statuses:
+        if status.get("status") == "failed":
+            errors = status.get("errors", [])
+            for error in errors:
+                if error.get("code") == 131026:
+                    return None  # Return None to skip retry if specific error code found
+
+    mesaage_data = json.loads(whatsapp_msg.mesaage_data.replace("'", '"'))
+    return {
+        "messaging_product": "whatsapp",
+        "to": whatsapp_msg.to,
+        "type": "template",
+        "template": {
+            "name": mesaage_data['name'],
+            "language": mesaage_data['language'],
+            "components": mesaage_data['components'],
+        },
+    }

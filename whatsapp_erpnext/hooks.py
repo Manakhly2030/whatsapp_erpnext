@@ -158,6 +158,11 @@ scheduler_events = {
         "whatsapp_erpnext.schedule.schedule_comments2",
         "whatsapp_erpnext.schedule.bg_message_contact_generation",
     ],
+    "cron": {
+        "0 * * * *":[
+            "whatsapp_erpnext.schedule.retry_failed_whatsapp_messages"
+        ]
+    }
 }
 
 # Testing

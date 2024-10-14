@@ -17,6 +17,9 @@
   "date",
   "document_name",
   "doctype_link_name",
+  "notification",
+  "rejection_remarks",
+  "retry_count",
   "column_break_5",
   "link_to",
   "link_name",
@@ -191,11 +194,32 @@
    "fieldtype": "Small Text",
    "label": "Message Data",
    "read_only": 1
+  },
+  {
+   "fieldname": "notification",
+   "fieldtype": "Link",
+   "label": "Notification",
+   "options": "Notification",
+   "read_only": 1
+  },
+  {
+   "depends_on": "rejection_remarks",
+   "fieldname": "rejection_remarks",
+   "fieldtype": "Small Text",
+   "label": "Rejection Remarks",
+   "read_only": 1
+  },
+  {
+   "default": "0",
+   "fieldname": "retry_count",
+   "fieldtype": "Int",
+   "hidden": 1,
+   "label": "Retry Count"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2024-09-11 12:04:27.205238",
+ "modified": "2024-10-07 17:46:02.213002",
  "modified_by": "Administrator",
  "module": "WhatsApp ERPNext",
  "name": "WhatsApp Message",

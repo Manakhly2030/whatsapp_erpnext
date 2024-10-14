@@ -205,7 +205,56 @@ def update_template_status(data):
 		data
 	)
 
-
+error_codes = {
+    1: "Invalid request or possible server error.",
+    2: "Temporary due to downtime or due to being overloaded.",
+    33: "The business phone number has been deleted.",
+    100: "The request included one or more unsupported or misspelled parameters.",
+    130472: "Message was not sent as part of an experiment.",
+    131000: "Message failed to send due to an unknown error.",
+    131005: "Permission is either not granted or has been removed.",
+    131008: "The request is missing a required parameter.",
+    131009: "One or more parameter values are invalid.",
+    131016: "A service is temporarily unavailable.",
+    131021: "Sender and recipient phone number is the same.",
+    131026: "Unable to deliver message. Reasons can include:\n"
+           "  * The recipient phone number is not a WhatsApp phone number.\n"
+           "  * Sending an authentication template to a WhatsApp user who has a +91 country calling code (India). Authentication templates currently cannot be sent to WhatsApp users in India.\n"
+           "  * Recipient has not accepted our new Terms of Service and Privacy Policy.\n"
+           "  * Recipient using an old WhatsApp version; must use the following WhatsApp version or greater:\n"
+           "    * Android: 2.21.15.15\n"
+           "    * SMBA: 2.21.15.15\n"
+           "    * iOS: 2.21.170.4\n"
+           "    * SMBI: 2.21.170.4\n"
+           "    * KaiOS: 2.2130.10\n"
+           "    * Web: 2.2132.6",
+    131042: "There was an error related to your payment method.",
+    131045: "Message failed to send due to a phone number registration error.",
+    131047: "More than 24 hours have passed since the recipient last replied to the sender number.",
+    131049: "This message was not delivered to maintain healthy ecosystem engagement.",
+    131051: "Unsupported message type.",
+    131052: "Unable to download the media sent by the user.",
+    131053: "Unable to upload the media used in the message.",
+    131057: "Business Account is in maintenance mode.",
+    132000: "The number of variable parameter values included in the request did not match the number of variable parameters defined in the template.",
+    132001: "The template does not exist in the specified language or the template has not been approved.",
+    132005: "Translated text is too long.",
+    132007: "Template content violates a WhatsApp policy.",
+    132012: "Variable parameter values formatted incorrectly.",
+    132015: "Template is paused due to low quality so it cannot be sent in a template message.",
+    132016: "Template has been paused too many times due to low quality and is now permanently disabled.",
+    132068: "Flow is in blocked state.",
+    132069: "Flow is in throttled state and 10 messages using this flow were already sent in the last hour.",
+    133000: "A previous deregistration attempt failed.",
+    133004: "Server is temporarily unavailable.",
+    133005: "Two-step verification PIN incorrect.",
+    133006: "Phone number needs to be verified before registering.",
+    133008: "Too many two-step verification PIN guesses for this phone number.",
+    133009: "Two-step verification PIN was entered too quickly.",
+    133010: "Phone number not registered on the WhatsApp Business Platform.",
+    133015: "The phone number you are attempting to register was recently deleted, and deletion has not yet completed.",
+    135000: "Message failed to send because of an unknown error with your request parameters."
+}
 
 def update_message_status(data, ):
 	"""Update message status."""
@@ -221,5 +270,11 @@ def update_message_status(data, ):
 		doc.conversation_id = conversation
 	if status == "failed":
 		doc.error_field = str(data)
-	
+	error_details = ""
+	if 'statuses' in data and len(data['statuses']) > 0 and data['statuses'][0]['status'] == 'failed':
+		errors = data['statuses'][0]['errors']
+		for error in errors:
+			reason = error_codes.get(error['code'], "Unknown error")
+			error_details += f"{reason}\n"
+		doc.rejection_remarks = error_details
 	doc.save(ignore_permissions=True)

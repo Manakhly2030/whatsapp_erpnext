@@ -306,12 +306,12 @@ def save_whatsapp_log(self, data, message_id, label=None):
         "type": "Outgoing",
         "mesaage_data": str(data.get("template", "")),
         "message": complete_message,
-        "to": data["to"],
-        "link_to": data["link_to"],
-        "link_name": data["link_name"],
-        "contact": data["contact"],
-        "message_datetime": data["message_datetime"],
-        "date": data["date"],
+        "to": data.get("to"),
+        "link_to": data.get("link_to"),
+        "link_name": data.get("link_name"),
+        "contact": data.get("contact"),
+        "message_datetime": data.get("message_datetime"),
+        "date": data.get("date"),
         "message_type": "Template",
         "message_id": message_id,
         "content_type": "document",
@@ -319,5 +319,63 @@ def save_whatsapp_log(self, data, message_id, label=None):
         "document_name": data.get("document_name"),
         "doctype_link_name": data.get("doctype_link_name"),
         "error_field": data.get("error_field"),
+        "notification": self.name,
     })
     whatsapp_message.save(ignore_permissions=True)
+
+@frappe.whitelist()
+def retry_message(whatsapp_msg_id):
+    """Retry sending a WhatsApp message based on message ID."""
+    settings = frappe.get_doc("WhatsApp Settings", "WhatsApp Settings")
+    
+    whatsapp_msg = frappe.get_doc("WhatsApp Message", whatsapp_msg_id)
+    data = prepare_retry_data(whatsapp_msg)
+    if not data:
+        return
+    token = settings.get_password("token")
+
+    headers = {
+        "authorization": f"Bearer {token}",
+        "content-type": "application/json"
+    }
+
+    response = make_post_request(
+        f"{settings.url}/{settings.version}/{settings.phone_id}/messages",
+        headers=headers,
+        data=json.dumps(data),
+    )
+
+    if "messages" in response and response["messages"]:
+        message_id = response["messages"][0]["id"]
+        whatsapp_msg.message_id = message_id 
+        whatsapp_msg.error_field = str(response)  
+        whatsapp_msg.rejection_remakrs = ""  # Clear rejection remarks
+        whatsapp_msg.save(ignore_permissions=True)  # Save changes
+        frappe.msgprint("WhatsApp message retried successfully", indicator="green", alert=False)
+        enqueue(save_whatsapp_log, self=whatsapp_msg, data=data, message_id=message_id, label=whatsapp_msg.label)
+    else:
+        frappe.msgprint("Failed to retry WhatsApp message", indicator="red", alert=True)
+
+def prepare_retry_data(whatsapp_msg):
+    if not whatsapp_msg.mesaage_data:
+        frappe.throw("Message data not found in WhatsApp message")
+    error_field = json.loads(whatsapp_msg.error_field.replace("'", '"'))
+    statuses = error_field.get("statuses", [])
+    for status in statuses:
+        if status.get("status") == "failed":
+            errors = status.get("errors", [])
+            for error in errors:
+                if error.get("code") == 131026:
+                    return
+
+    mesaage_data = json.loads(whatsapp_msg.mesaage_data.replace("'", '"'))
+    return {
+        "messaging_product": "whatsapp",
+        "to": whatsapp_msg.to,
+        "type": "template",
+        "template": {
+            "name": mesaage_data['name'],
+            "language": mesaage_data['language'],
+            "components": mesaage_data['components'],
+        },
+    }
