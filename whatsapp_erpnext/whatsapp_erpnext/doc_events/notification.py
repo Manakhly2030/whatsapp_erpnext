@@ -329,6 +329,7 @@ def retry_message(whatsapp_msg_id):
     settings = frappe.get_doc("WhatsApp Settings", "WhatsApp Settings")
     
     whatsapp_msg = frappe.get_doc("WhatsApp Message", whatsapp_msg_id)
+    notification = frappe.get_doc("Notification", whatsapp_msg.notification)
     data = prepare_retry_data(whatsapp_msg)
     if not data:
         return
@@ -352,7 +353,6 @@ def retry_message(whatsapp_msg_id):
         whatsapp_msg.rejection_remakrs = ""  # Clear rejection remarks
         whatsapp_msg.save(ignore_permissions=True)  # Save changes
         frappe.msgprint("WhatsApp message retried successfully", indicator="green", alert=False)
-        enqueue(save_whatsapp_log, self=whatsapp_msg, data=data, message_id=message_id, label=whatsapp_msg.label)
     else:
         frappe.msgprint("Failed to retry WhatsApp message", indicator="red", alert=True)
 
