@@ -119,9 +119,9 @@ doctype_js = {
 # ---------------
 # Override standard doctype classes
 
-override_doctype_class = {
-	"Notification": "whatsapp_erpnext.override.notification.Notification"
-}
+# override_doctype_class = {
+# 	"Notification": "whatsapp_erpnext.override.notification.Notification"
+# }
 
 # Document Events
 # ---------------
