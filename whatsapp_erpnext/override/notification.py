@@ -5,10 +5,11 @@ import json
 import os
 from collections import namedtuple
 import frappe
-from frappe.utils import nowdate
+from frappe.utils import nowdate,add_days, add_months, add_years
 from frappe.utils.safe_exec import get_safe_globals
-
-from frappe.email.doctype.notification.notification import Notification as _Notification
+from frappe.desk.form import assign_to
+from jinja2 import Template
+from frappe.email.doctype.notification.notification import Notification as _Notification ,get_context
 from whatsapp_erpnext.whatsapp_erpnext.doc_events.notification import send_template_message
 
 
@@ -24,7 +25,7 @@ class Notification(_Notification):
 		from frappe.types import DF
 
 		attach_print: DF.Check
-		channel: DF.Literal["Email", "Slack", "System Notification", "SMS","WhatsApp"]
+		channel: DF.Literal["Email", "Slack", "System Notification", "SMS","WhatsApp","Task"]
 		condition: DF.Code | None
 		date_changed: DF.Literal[None]
 		days_in_advance: DF.Int
@@ -85,15 +86,57 @@ class Notification(_Notification):
 			
 			if self.channel == "WhatsApp":
 				send_template_message(self,doc)
-
+    
+			if self.channel == "Task":
+				self.create_task(doc, context)
 		except Exception:
 			self.log_error("Failed to send Notification")
 
-	
-def get_context(doc):
-	Frappe = namedtuple("frappe", ["utils"])
-	return {
-		"doc": doc,
-		"nowdate": nowdate,
-		"frappe": Frappe(utils=get_safe_globals().get("frappe").get("utils")),
-	}
+	def create_task(self, doc, context):
+		"""Create Task"""
+		try:
+			# Render subject and message using templates
+			task_subject_template = Template(self.subject)
+			formatted_subject = task_subject_template.render(doc=doc)
+			task_description_template = Template(self.message)
+			formatted_message = task_description_template.render(doc=doc)
+
+			# Calculate end date based on frequency
+			days_to_add = int(self.exp_end_date_after) if self.exp_end_date_after else 0
+			exp_end_date = nowdate()
+			if self.frequency == "Day":
+				exp_end_date = add_days(exp_end_date, days_to_add)
+			elif self.frequency == "Month":
+				exp_end_date = add_months(exp_end_date, days_to_add)
+			elif self.frequency == "Year":
+				exp_end_date = add_years(exp_end_date, days_to_add)
+
+			# Create new Task document
+			task = frappe.new_doc("Task")
+			task.subject = formatted_subject
+			task.exp_start_date = nowdate()
+			task.description = formatted_message
+			task.exp_end_date = exp_end_date
+			task.type = self.type
+			task.priority = self.priority
+			task.save(ignore_permissions=True)
+
+			if self.assignment:
+				for assignment in self.assignment:
+					assign_to.add(
+						dict(
+							assign_to= [assignment.assignment],
+							doctype="Task",
+							name=task.name,
+							description=formatted_message,
+							priority=self.priority,
+							notify=True,
+						),
+						ignore_permissions=True,
+					)
+
+			frappe.msgprint("Task Created and Assigned Successfully")
+			return task
+		except Exception as e:
+			frappe.log_error(f"Error in creating task: {str(e)}", "Notification Task Creation Error")
+			frappe.msgprint("Failed to create task.", alert=True)
