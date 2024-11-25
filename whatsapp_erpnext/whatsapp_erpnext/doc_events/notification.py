@@ -162,7 +162,7 @@ def send_template_message(self, doc: Document, contact_no=None):
 							"type": "body",
 							"parameters": parameters
 						}]
-
+                    label = None
                     if self.attach_print:
                         key = doc.get_document_share_key()
                         frappe.db.commit()
